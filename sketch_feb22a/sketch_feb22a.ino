@@ -19,22 +19,36 @@ void setup() {
 
 void loop() {
 
-  spin();
+  //spin1();
+
+  //delay(1000);
+
+  spin2();
 
 }
 
-void spin() {
+void spin1() {
 
   digitalWrite(in1, LOW);
   digitalWrite(in2, HIGH);
-  digitalWrite(in3, LOW);
-  digitalWrite(in4, HIGH);
 
   delay(2000);
 
   digitalWrite(in1, HIGH);
   digitalWrite(in2, LOW);
-  digitalWrite(in3, HIGH);
-  digitalWrite(in4, LOW);
 
 }
+
+void spin2() {
+
+  digitalWrite(in3, LOW);
+  digitalWrite(in4, HIGH);
+
+  delay(2000);
+
+  digitalWrite(in3, HIGH);
+  digitalWrite(in4, LOW);
+  
+}
+
+
