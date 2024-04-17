@@ -93,3 +93,19 @@ void loop() {
     delay(200);
   }
 }
+
+bool detect_line() {
+  int temp1 = state;
+  while(true) {
+    digitalWrite(in3, LOW);
+    digitalWrite(in4, LOW);
+    spinLeft();
+    delay(200);
+    digitalWrite(in1, LOW);
+    digitalWrite(in2, LOW);
+    spinRight();
+    if(temp1 != state) {
+      break;
+    }
+  }
+}
