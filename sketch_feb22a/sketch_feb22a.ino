@@ -1,111 +1,152 @@
+// Reserve pins 7 and for left motor, 12 and 13 for right motor
 const int in1 = 7;
 const int in2 = 8;
 const int in3 = 12;
 const int in4 = 13;
 
+// Reserve pin 2 for left sensor, 4 for right sensor
 const int ir1 = 2;
 const int ir2 = 4;
 
+// Primary state of the vehicle (0 to disable all motors)
 int state = 0;
 
-int mode = 2;
+//Debug mode (off by default)
+const bool debug = false;
+
+class Motor {
+  // A motor object with two corresponding output pins
+
+  public:
+    int pin1;
+    int pin2;
+
+    void direction(int dir) {
+      //Changes the direction of the motor
+
+      if(dir == 1) {
+        // Forward
+
+        digitalWrite(pin1, HIGH);
+        digitalWrite(pin2, LOW);
+
+      } else if(dir == -1) {
+        // Backwards
+
+        digitalWrite(pin1, LOW);
+        digitalWrite(pin2, HIGH);
+
+      } else {
+        // Off
+
+        digitalWrite(pin1, LOW);
+        digitalWrite(pin2, LOW);
+
+      }
+    }
+};
+
+class Sensor {
+  // An ir sensor object with a corresponding input pin
+
+  public:
+    int inputPin;
+
+    bool getSignal() {
+      // Returns the !output of a sensor (TRUE if detected, FALSE otherwise) 
+
+      return !digitalRead(inputPin);
+    }
+};
+
+// Create two global motor and sensor objects
+Motor motorLeft;
+Motor motorRight;
+Sensor sensorLeft;
+Sensor sensorRight;
 
 void setup() {
 
   Serial.begin(9600);
 
+  // Set motor pins to output
   pinMode(in1, OUTPUT);
   pinMode(in2, OUTPUT);
   pinMode(in3, OUTPUT);
   pinMode(in4, OUTPUT);
 
+  // Set sensor pins for input
   pinMode(ir1, INPUT);
   pinMode(ir2, INPUT);
 
-  digitalWrite(in1, LOW);
-  digitalWrite(in2, LOW);
-  digitalWrite(in3, LOW);
-  digitalWrite(in4, LOW);
+  // Assign pins to motor objects
+  motorLeft.pin1 = in1;
+  motorLeft.pin2 = in2;
+  motorRight.pin1 = in3;
+  motorRight.pin2 = in4;
 
-}
+  // Assign pins to all sensor objects
+  sensorLeft.inputPin = ir1;
+  sensorRight.inputPin = ir2;
 
-void spinLeft() {
+  // Disable all motors by default
+  motorLeft.direction(0);
+  motorRight.direction(0);
 
-  digitalWrite(in1, HIGH);
-  digitalWrite(in2, LOW);
-
-}
-
-void spinRight() {
-
-  digitalWrite(in3, HIGH);
-  digitalWrite(in4, LOW);
-  
-}
-
-int irLeft_input() {
-  return !digitalRead(ir1);
-
-}
-
-int irRight_input() {
-  return !digitalRead(ir2);
-
-}
-
-void print_state() {
-  Serial.print(state);
 }
 
 void loop() {
 
-  if(mode == 1) {
-    spinLeft();
-    spinRight();
+  if(!debug) {
+    // If debug is disabled run the program
 
-  } else if(mode == 2){
+    int irLeft = sensorLeft.getSignal();
+    int irRight = sensorRight.getSignal();
+    print_serial(irLeft, irRight);
 
-    if(irLeft_input() && !irRight_input() && state != 1) {
+    if(irLeft && !irRight && state != 1) {
+      // If right sensor looses signal (black line detected) spin left motor
+
       state = 1;
-      digitalWrite(in3, LOW);
-      digitalWrite(in4, LOW);
-      print_state();
-      spinLeft();
+      motorLeft.direction(1);
+      motorRight.direction(0);
 
-    } else if(irRight_input() && !irLeft_input() && state != 2) {
+    } else if(irRight && !irLeft && state != 2) {
+      // If left sensor looses signal (black line detected) spin right motor
+
       state = 2;
-      digitalWrite(in1, LOW);
-      digitalWrite(in2, LOW);
-      print_state();
-      spinRight
-    ();
+      motorLeft.direction(0);
+      motorRight.direction(1);
 
-    } else if(irLeft_input() && irRight_input()) {
+    } else if(!irLeft && !irRight && state != 0) {
+      // If bot motors loose signal disable both motors (parking mode)
+
       state = 0;
-      digitalWrite(in1, LOW);
-      digitalWrite(in2, LOW);
-      digitalWrite(in3, LOW);
-      digitalWrite(in4, LOW);
-      delay(2000);
-    
+      motorLeft.direction(0);
+      motorRight.direction(0);
+
     }
 
-    delay(200);
+  } else {
+      // Debug mode ignores the sensors and just spins the motors
+
+      motorLeft.direction(1);
+      motorRight.direction(1);
+
   }
 }
 
-bool detect_line() {
-  int temp1 = state;
-  while(true) {
-    digitalWrite(in3, LOW);
-    digitalWrite(in4, LOW);
-    spinLeft();
-    delay(200);
-    digitalWrite(in1, LOW);
-    digitalWrite(in2, LOW);
-    spinRight();
-    if(temp1 != state) {
-      break;
-    }
-  }
+void print_serial(int left, int right) {
+    // Prints out the values of sensorLeft, sensorRight and state
+
+    Serial.print("Left:");
+    Serial.print(left);
+    Serial.print(",");
+    Serial.print("Right:");
+    Serial.print(right);
+    Serial.print(",");
+    Serial.print("State:");
+    Serial.print(state);
+    Serial.print("\n");
+
 }
