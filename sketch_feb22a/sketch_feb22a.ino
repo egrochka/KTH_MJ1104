@@ -11,8 +11,12 @@ const int ir2 = 4;
 // Primary state of the vehicle (0 to disable all motors)
 int state = 0;
 
-//Debug mode (off by default)
+// Debug mode (off by default)
 const bool debug = false;
+
+// Constants
+const int inputDelay = 20;
+const int chargeTime = 30000;
 
 class Motor {
   // A motor object with two corresponding output pins
@@ -93,6 +97,10 @@ void setup() {
   motorLeft.direction(0);
   motorRight.direction(0);
 
+  //Charge time
+  delay(chargeTime);
+  motorLeft.direction(1);
+
 }
 
 void loop() {
@@ -106,32 +114,34 @@ void loop() {
 
     if(irLeft && !irRight && state != 1) {
       // If right sensor looses signal (black line detected) spin left motor
-
+      delay(inputDelay);
       state = 1;
-      motorLeft.direction(1);
-      motorRight.direction(0);
-
-    } else if(irRight && !irLeft && state != 2) {
-      // If left sensor looses signal (black line detected) spin right motor
-
-      state = 2;
       motorLeft.direction(0);
       motorRight.direction(1);
 
-    } else if(!irLeft && !irRight && state != 0) {
-      // If bot motors loose signal disable both motors (parking mode)
-
-      state = 0;
-      motorLeft.direction(0);
+    } else if(irRight && !irLeft && state != 2) {
+      // If left sensor looses signal (black line detected) spin right motor
+      delay(inputDelay);
+      state = 2;
+      motorLeft.direction(1);
       motorRight.direction(0);
 
     }
 
-  } else {
-      // Debug mode ignores the sensors and just spins the motors
+    //} else if(irLeft && irRight && state != 0) {
+    //  If both motors gain signal disable both motors (parking mode)
 
-      motorLeft.direction(1);
-      motorRight.direction(1);
+    //  state = 0;
+    //  motorLeft.direction(0);
+    //  motorRight.direction(0);
+
+    //}
+
+  } else {
+      // Ignore sensors and disable motors
+
+      motorLeft.direction(0);
+      motorRight.direction(0);
 
   }
 }
