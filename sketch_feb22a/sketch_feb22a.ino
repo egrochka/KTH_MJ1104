@@ -15,52 +15,52 @@ int state = 0;
 const bool debug = false;
 
 // Constants
-const int inputDelay = 20;
-const int chargeTime = 30000;
+const int delayInput = 20;
+const int delayRotation = 50;
+const int delayCharge = 22500;
 
 class Motor {
   // A motor object with two corresponding output pins
 
-  public:
-    int pin1;
-    int pin2;
+public:
+  int pin1;
+  int pin2;
 
-    void direction(int dir) {
-      //Changes the direction of the motor
+  void direction(int dir) {
+    //Changes the direction of the motor
 
-      if(dir == 1) {
-        // Forward
+    if (dir == 1) {
+      // Forward
 
-        digitalWrite(pin1, HIGH);
-        digitalWrite(pin2, LOW);
+      digitalWrite(pin1, HIGH);
+      digitalWrite(pin2, LOW);
 
-      } else if(dir == -1) {
-        // Backwards
+    } else if (dir == -1) {
+      // Backwards
 
-        digitalWrite(pin1, LOW);
-        digitalWrite(pin2, HIGH);
+      digitalWrite(pin1, LOW);
+      digitalWrite(pin2, HIGH);
 
-      } else {
-        // Off
+    } else {
+      // Off
 
-        digitalWrite(pin1, LOW);
-        digitalWrite(pin2, LOW);
-
-      }
+      digitalWrite(pin1, LOW);
+      digitalWrite(pin2, LOW);
     }
+  }
 };
 
 class Sensor {
   // An ir sensor object with a corresponding input pin
 
-  public:
-    int inputPin;
+public:
+  int inputPin;
 
-    bool getSignal() {
-      // Returns the !output of a sensor (TRUE if detected, FALSE otherwise) 
+  bool getSignal() {
+    // Returns the !output of a sensor (TRUE if detected, FALSE otherwise)
 
-      return !digitalRead(inputPin);
-    }
+    return !digitalRead(inputPin);
+  }
 };
 
 // Create two global motor and sensor objects
@@ -98,65 +98,71 @@ void setup() {
   motorRight.direction(0);
 
   //Charge time
-  delay(chargeTime);
+  delay(delayCharge);
   motorLeft.direction(1);
-
 }
 
 void loop() {
+  // Main program
 
-  if(!debug) {
-    // If debug is disabled run the program
+  int irLeft = sensorLeft.getSignal();
+  int irRight = sensorRight.getSignal();
+  print_serial(irLeft, irRight);
 
-    int irLeft = sensorLeft.getSignal();
-    int irRight = sensorRight.getSignal();
-    print_serial(irLeft, irRight);
+  if (irLeft && !irRight && state != 1) {
+    // If right sensor looses signal (black line detected) spin left motor
 
-    if(irLeft && !irRight && state != 1) {
-      // If right sensor looses signal (black line detected) spin left motor
-      delay(inputDelay);
-      state = 1;
-      motorLeft.direction(0);
-      motorRight.direction(1);
+    state = 1;
+    delay(delayInput);
+    motorLeft.direction(0);
+    motorRight.direction(1);
 
-    } else if(irRight && !irLeft && state != 2) {
-      // If left sensor looses signal (black line detected) spin right motor
-      delay(inputDelay);
-      state = 2;
-      motorLeft.direction(1);
-      motorRight.direction(0);
+  } else if (irRight && !irLeft && state != 2) {
+    // If left sensor looses signal (black line detected) spin right motor
 
-    }
+    state = 2;
+    delay(delayInput);
+    motorLeft.direction(1);
+    motorRight.direction(0);
 
-    //} else if(irLeft && irRight && state != 0) {
-    //  If both motors gain signal disable both motors (parking mode)
+    //} else if(!irLeft && !irRight && state != 0) {
+    //  // If both motors lose signal disable motors
 
-    //  state = 0;
     //  motorLeft.direction(0);
     //  motorRight.direction(0);
 
+    //} else if(irLeft && irRight) {
+    // If both sensor detect a line (happens only on a corner) retract and continue
+    //
+    //  if(state == 1) {
+    //
+    //    motorLeft.direction(-1);
+    //    motorRight.direction(0);
+    //    delay(delayRotation);
+    //   motorLeft.direction(0);
+    //   motorRight.direction(1);
+    // }
+    // if(state == 2) {
+    //
+    //    motorLeft.direction(0);
+    //  motorRight.direction(-1);
+    //delay(delayRotation);
+    // motorLeft.direction(1);
+    // motorRight.direction(0);
     //}
-
-  } else {
-      // Ignore sensors and disable motors
-
-      motorLeft.direction(0);
-      motorRight.direction(0);
-
   }
 }
 
 void print_serial(int left, int right) {
-    // Prints out the values of sensorLeft, sensorRight and state
+  // Prints out the values of sensorLeft, sensorRight and state
 
-    Serial.print("Left:");
-    Serial.print(left);
-    Serial.print(",");
-    Serial.print("Right:");
-    Serial.print(right);
-    Serial.print(",");
-    Serial.print("State:");
-    Serial.print(state);
-    Serial.print("\n");
-
+  Serial.print("Left:");
+  Serial.print(left);
+  Serial.print(",");
+  Serial.print("Right:");
+  Serial.print(right);
+  Serial.print(",");
+  Serial.print("State:");
+  Serial.print(state);
+  Serial.print("\n");
 }
