@@ -17,7 +17,7 @@ const bool debug = false;
 // Constants
 const int delayInput = 20;
 const int delayRotation = 50;
-const int delayCharge = 22500;
+const int delayCharge = 26*1000;
 
 class Motor {
   // A motor object with two corresponding output pins
