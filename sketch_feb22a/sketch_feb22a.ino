@@ -1,23 +1,19 @@
-// Reserve pins 7 and for left motor, 12 and 13 for right motor
+// Reserve pins for left and right motors
 const int in1 = 7;
 const int in2 = 8;
 const int in3 = 12;
 const int in4 = 13;
 
-// Reserve pin 2 for left sensor, 4 for right sensor
+// Reserve pins for left and right sensors
 const int ir1 = 2;
 const int ir2 = 4;
 
 // Primary state of the vehicle (0 to disable all motors)
 int state = 0;
 
-// Debug mode (off by default)
-const bool debug = false;
-
 // Constants
 const int delayInput = 20;
-const int delayRotation = 50;
-const int delayCharge = 26*1000;
+const int delayCharge = 28000;
 
 class Motor {
   // A motor object with two corresponding output pins
@@ -27,7 +23,7 @@ public:
   int pin2;
 
   void direction(int dir) {
-    //Changes the direction of the motor
+    // Changes direction of the motor
 
     if (dir == 1) {
       // Forward
@@ -73,31 +69,29 @@ void setup() {
 
   Serial.begin(9600);
 
-  // Set motor pins to output
-  pinMode(in1, OUTPUT);
-  pinMode(in2, OUTPUT);
-  pinMode(in3, OUTPUT);
-  pinMode(in4, OUTPUT);
-
-  // Set sensor pins for input
-  pinMode(ir1, INPUT);
-  pinMode(ir2, INPUT);
-
-  // Assign pins to motor objects
+  // Assign pins to motor objects and make them output pins
   motorLeft.pin1 = in1;
   motorLeft.pin2 = in2;
   motorRight.pin1 = in3;
   motorRight.pin2 = in4;
 
-  // Assign pins to all sensor objects
+  pinMode(in1, OUTPUT);
+  pinMode(in2, OUTPUT);
+  pinMode(in3, OUTPUT);
+  pinMode(in4, OUTPUT);
+
+  // Assign pins to all sensor objects and make them input pins
   sensorLeft.inputPin = ir1;
   sensorRight.inputPin = ir2;
+
+  pinMode(ir1, INPUT);
+  pinMode(ir2, INPUT);
 
   // Disable all motors by default
   motorLeft.direction(0);
   motorRight.direction(0);
 
-  //Charge time
+  // Charging time
   delay(delayCharge);
   motorLeft.direction(1);
 }
@@ -124,32 +118,6 @@ void loop() {
     delay(delayInput);
     motorLeft.direction(1);
     motorRight.direction(0);
-
-    //} else if(!irLeft && !irRight && state != 0) {
-    //  // If both motors lose signal disable motors
-
-    //  motorLeft.direction(0);
-    //  motorRight.direction(0);
-
-    //} else if(irLeft && irRight) {
-    // If both sensor detect a line (happens only on a corner) retract and continue
-    //
-    //  if(state == 1) {
-    //
-    //    motorLeft.direction(-1);
-    //    motorRight.direction(0);
-    //    delay(delayRotation);
-    //   motorLeft.direction(0);
-    //   motorRight.direction(1);
-    // }
-    // if(state == 2) {
-    //
-    //    motorLeft.direction(0);
-    //  motorRight.direction(-1);
-    //delay(delayRotation);
-    // motorLeft.direction(1);
-    // motorRight.direction(0);
-    //}
   }
 }
 
